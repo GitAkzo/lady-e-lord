@@ -3,11 +3,46 @@ export const SALON_INFO = {
   subtitle: "Shopping Cidade dos Lagos",
   city: "Guarapuava - PR",
   address: "Av. Guarapuava, 1400 - Cidade dos Lagos (Piso L1)",
-  phone: "(42) 99876-5432", // Número configurável da recepção
-  whatsappRaw: "5542998765432",
+  phone: "(41) 9 9933-7207",
+  whatsappRaw: "5541999337207",
   openingHours: "Seg a Sáb: 10h às 22h | Dom: 14h às 20h",
   rating: 4.9,
   reviewsCount: 387
+};
+
+export const PROFESSIONALS_LADY = [
+  { id: "qualquer", name: "Primeiro Disponível", role: "Atendimento mais rápido" },
+  { id: "amanda", name: "Amanda Costa", role: "Especialista Mechas & Loiros" },
+  { id: "juliana", name: "Juliana Prado", role: "Visagismo, Corte & Escovas" },
+  { id: "beatriz", name: "Beatriz Lima", role: "Terapia Capilar & Cronograma" },
+  { id: "camila", name: "Camila Santos", role: "Spa de Unhas & Alongamento" }
+];
+
+export const PROFESSIONALS_LORD = [
+  { id: "qualquer-lord", name: "Primeiro Disponível", role: "Atendimento mais rápido" },
+  { id: "carlos", name: "Carlos Eduardo", role: "Master Barber & Degradê" },
+  { id: "marcos", name: "Marcos Vinicius", role: "Barboterapia & Visagismo Masculino" }
+];
+
+export const TIME_SLOTS = {
+  manha: [
+    { time: "10:30", available: true },
+    { time: "11:15", available: true },
+    { time: "12:00", available: false } // Simulação de vaga disputada
+  ],
+  tarde: [
+    { time: "13:30", available: true },
+    { time: "14:15", available: true },
+    { time: "15:00", available: false },
+    { time: "16:00", available: true },
+    { time: "17:15", available: true }
+  ],
+  noite: [
+    { time: "18:15", available: true },
+    { time: "19:00", available: true },
+    { time: "19:45", available: false },
+    { time: "20:30", available: true }
+  ]
 };
 
 export const SERVICES_LADY = [

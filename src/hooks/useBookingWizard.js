@@ -1,26 +1,40 @@
 import { useState, useMemo } from 'react';
-import { SALON_INFO, SERVICES_LADY, SERVICES_LORD } from '../data/servicesData';
+import {
+  SALON_INFO,
+  SERVICES_LADY,
+  SERVICES_LORD,
+  PROFESSIONALS_LADY,
+  PROFESSIONALS_LORD,
+  TIME_SLOTS
+} from '../data/servicesData';
 
 export function useBookingWizard() {
   const [activeTab, setActiveTab] = useState('lady'); // 'lady' | 'lord'
   const [selectedServiceId, setSelectedServiceId] = useState('mechas');
-  const [preferredShift, setPreferredShift] = useState('tarde'); // 'manha' | 'tarde' | 'noite'
-  const [preferredDay, setPreferredDay] = useState('esta-semana');
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState('qualquer');
+  const [selectedDateOffset, setSelectedDateOffset] = useState(0); // 0 = hoje, 1 = amanhã, etc.
+  const [selectedShift, setSelectedShift] = useState('tarde'); // 'manha' | 'tarde' | 'noite'
+  const [selectedTime, setSelectedTime] = useState('14:15');
   const [clientName, setClientName] = useState('');
-  const [professionalPref, setProfessionalPref] = useState('');
 
-  // Retorna a lista de serviços de acordo com a aba ativa
+  // Lista de serviços e profissionais ativos
   const currentServices = useMemo(() => {
     return activeTab === 'lady' ? SERVICES_LADY : SERVICES_LORD;
   }, [activeTab]);
 
-  // Altera aba e reseta serviço padrão
+  const currentProfessionals = useMemo(() => {
+    return activeTab === 'lady' ? PROFESSIONALS_LADY : PROFESSIONALS_LORD;
+  }, [activeTab]);
+
+  // Altera aba e reseta padrões
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (tab === 'lady') {
       setSelectedServiceId(SERVICES_LADY?.[0]?.id ?? 'mechas');
+      setSelectedProfessionalId('qualquer');
     } else {
       setSelectedServiceId(SERVICES_LORD?.[0]?.id ?? 'corte-lord');
+      setSelectedProfessionalId('qualquer-lord');
     }
   };
 
@@ -30,48 +44,72 @@ export function useBookingWizard() {
     return list?.find((s) => s.id === selectedServiceId) ?? list?.[0];
   }, [activeTab, selectedServiceId]);
 
-  // Rótulos amigáveis
-  const shiftLabels = {
-    manha: 'Manhã (10h às 13h)',
-    tarde: 'Tarde (13h às 18h)',
-    noite: 'Noite (18h às 21h)'
-  };
+  // Encontra o profissional selecionado
+  const selectedProfessional = useMemo(() => {
+    const list = activeTab === 'lady' ? PROFESSIONALS_LADY : PROFESSIONALS_LORD;
+    return list?.find((p) => p.id === selectedProfessionalId) ?? list?.[0];
+  }, [activeTab, selectedProfessionalId]);
 
-  const dayLabels = {
-    hoje: 'Hoje',
-    amanha: 'Amanhã',
-    'esta-semana': 'Nesta semana',
-    sabado: 'Próximo Sábado'
-  };
+  // Gera os próximos 6 dias da semana com datas reais
+  const availableDays = useMemo(() => {
+    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const days = [];
+    const baseDate = new Date();
 
-  // Monta texto estruturado da mensagem
+    for (let i = 0; i < 6; i++) {
+      const d = new Date();
+      d.setDate(baseDate.getDate() + i);
+      const isToday = i === 0;
+      const isTomorrow = i === 1;
+      
+      let label = isToday ? 'Hoje' : isTomorrow ? 'Amanhã' : `${diasSemana[d.getDay()]}`;
+      let dateFormatted = `${d.getDate()} ${meses[d.getMonth()]}`;
+
+      days.push({
+        offset: i,
+        label,
+        dayOfWeek: diasSemana[d.getDay()],
+        dateFormatted,
+        fullDateStr: `${label} (${dateFormatted})`
+      });
+    }
+    return days;
+  }, []);
+
+  const activeDayObj = availableDays[selectedDateOffset] ?? availableDays[0];
+
+  // Horários disponíveis para o turno atual
+  const currentSlots = useMemo(() => {
+    return TIME_SLOTS[selectedShift] ?? [];
+  }, [selectedShift]);
+
+  // Monta texto estruturado da mensagem para WhatsApp
   const formattedMessage = useMemo(() => {
     const serviceName = selectedService?.title ?? 'Serviço de Beleza';
-    const shiftText = shiftLabels[preferredShift] ?? 'Flexível';
-    const dayText = dayLabels[preferredDay] ?? 'A combinar';
-    const spaceText = activeTab === 'lady' ? 'Espaço Lady' : 'Espaço Lord (Barbearia)';
+    const profName = selectedProfessional?.name ?? 'Qualquer Profissional Disponível';
+    const dayStr = activeDayObj?.fullDateStr ?? 'Hoje';
+    const spaceText = activeTab === 'lady' ? 'Espaço Lady & Lord' : 'Espaço Lord (Barbearia)';
 
-    let msg = `Olá, Lady & Lord Shopping Cidade dos Lagos! 👋\n`;
-    msg += `Gostaria de agendar um horário:\n\n`;
-    msg += `✨ *Espaço:* ${spaceText}\n`;
+    let msg = `Olá, equipe Lady & Lord Cidade dos Lagos! 👋\n`;
+    msg += `Gostaria de agendar o seguinte horário:\n\n`;
     msg += `✂️ *Serviço:* ${serviceName}\n`;
-    msg += `📅 *Previsão:* ${dayText}\n`;
-    msg += `⏰ *Turno preferido:* ${shiftText}\n`;
+    msg += `👤 *Profissional:* ${profName}\n`;
+    msg += `📅 *Data:* ${dayStr}\n`;
+    msg += `⏰ *Horário desejado:* ${selectedTime}\n`;
+    msg += `🏬 *Espaço:* ${spaceText}\n`;
     
     if (clientName?.trim()) {
-      msg += `👤 *Meu nome:* ${clientName.trim()}\n`;
-    }
-    if (professionalPref?.trim()) {
-      msg += `💇 *Preferência de profissional:* ${professionalPref.trim()}\n`;
+      msg += `✨ *Cliente:* ${clientName.trim()}\n`;
     }
     
-    msg += `\nQuais horários vocês têm disponíveis na grade?`;
+    msg += `\nPoderiam confirmar a reserva dessa vaga na grade para mim?`;
     return msg;
-  }, [activeTab, selectedService, preferredShift, preferredDay, clientName, professionalPref]);
+  }, [activeTab, selectedService, selectedProfessional, activeDayObj, selectedTime, clientName]);
 
   // Link direto para a API do WhatsApp
   const whatsappUrl = useMemo(() => {
-    const phone = SALON_INFO?.whatsappRaw ?? '5542998765432';
+    const phone = SALON_INFO?.whatsappRaw ?? '5541999337207';
     return `https://wa.me/${phone}?text=${encodeURIComponent(formattedMessage)}`;
   }, [formattedMessage]);
 
@@ -82,14 +120,21 @@ export function useBookingWizard() {
     setSelectedServiceId,
     selectedService,
     currentServices,
-    preferredShift,
-    setPreferredShift,
-    preferredDay,
-    setPreferredDay,
+    currentProfessionals,
+    selectedProfessionalId,
+    setSelectedProfessionalId,
+    selectedProfessional,
+    availableDays,
+    selectedDateOffset,
+    setSelectedDateOffset,
+    activeDayObj,
+    selectedShift,
+    setSelectedShift,
+    currentSlots,
+    selectedTime,
+    setSelectedTime,
     clientName,
     setClientName,
-    professionalPref,
-    setProfessionalPref,
     formattedMessage,
     whatsappUrl
   };
