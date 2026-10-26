@@ -1,5 +1,5 @@
-import React from 'react';
-import { Calendar, Clock, Sun, Sunset, Moon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, Clock, Sun, Sunset, Moon, Eye, X } from 'lucide-react';
 
 export function DateTimeSelector({
   availableDays,
@@ -11,6 +11,8 @@ export function DateTimeSelector({
   selectedTime,
   onSelectTime
 }) {
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+
   const shifts = [
     { id: 'manha', label: 'Manhã', icon: Sun, period: '10h às 13h' },
     { id: 'tarde', label: 'Tarde', icon: Sunset, period: '13h às 18h' },
@@ -21,10 +23,21 @@ export function DateTimeSelector({
     <div className="space-y-5 pt-2">
       {/* 1. Escolha do Dia */}
       <div className="space-y-2.5">
-        <label className="text-xs uppercase tracking-wider font-semibold text-[#d4af37] flex items-center gap-1.5">
-          <Calendar size={14} />
-          3. Escolha o Dia:
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="text-xs uppercase tracking-wider font-semibold text-[#d4af37] flex items-center gap-1.5">
+            <Calendar size={14} />
+            3. Escolha o Dia:
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowCalendarModal(true)}
+            className="text-[11px] text-[#f3e3a9] hover:underline flex items-center gap-1 font-medium"
+          >
+            <Eye size={12} className="text-[#d4af37]" />
+            Ver Calendário do Mês
+          </button>
+        </div>
+
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {(availableDays ?? []).map((day) => {
             const isSelected = selectedOffset === day.offset;
@@ -117,9 +130,70 @@ export function DateTimeSelector({
 
         <p className="text-[11px] text-[#787886] flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span>Horários em verde/dourado estão livres no sistema da recepção hoje.</span>
+          <span>Horários em dourado estão livres no sistema da recepção hoje.</span>
         </p>
       </div>
+
+      {/* Modal de Calendário Mensal Ilustrativo */}
+      {showCalendarModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#121217] border border-[#d4af37]/30 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <Calendar size={18} className="text-[#d4af37]" />
+                <h3 className="font-serif-luxury text-lg font-bold text-white">
+                  Agenda Shopping Cidade dos Lagos
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCalendarModal(false)}
+                className="text-zinc-400 hover:text-white p-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#a0a0b0]">
+              Visualização da grade de atendimento semanal. Clique no dia para selecionar os horários livres:
+            </p>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              {(availableDays ?? []).map((day) => (
+                <button
+                  key={day.offset}
+                  type="button"
+                  onClick={() => {
+                    onSelectOffset(day.offset);
+                    setShowCalendarModal(false);
+                  }}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                    selectedOffset === day.offset
+                      ? 'bg-[#1f1f2a] border-[#d4af37] text-white'
+                      : 'bg-[#0a0a0d] border-white/10 text-zinc-300 hover:border-[#d4af37]/40'
+                  }`}
+                >
+                  <div>
+                    <p className="text-xs font-bold text-white">{day.label}</p>
+                    <p className="text-[10px] text-[#d4af37]">{day.dateFormatted}</p>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold">
+                    Disponível
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowCalendarModal(false)}
+              className="w-full py-2.5 rounded-xl bg-[#1d1d28] hover:bg-[#252533] text-xs font-bold text-white transition-all"
+            >
+              Fechar Visualização
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

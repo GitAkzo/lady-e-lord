@@ -61,12 +61,16 @@ export function Header() {
           </a>
 
           {/* Desktop Nav Links - Limpos e sem quebra */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-xs xl:text-sm font-medium text-[#c8c8d0]">
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-xs xl:text-sm font-medium text-[#c8c8d0]">
+            <a href="#agendamento" className="hover:text-[#d4af37] transition-colors whitespace-nowrap flex items-center gap-1.5 text-[#f3e3a9]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] animate-pulse"></span>
+              Agenda
+            </a>
             <a href="#servicos" className="hover:text-[#d4af37] transition-colors whitespace-nowrap">
               Espaço Lady
             </a>
             <a href="#espaco-lord" className="hover:text-[#d4af37] transition-colors whitespace-nowrap">
-              Espaço Lord (Barbearia)
+              Espaço Lord
             </a>
             <a href="#diferenciais" className="hover:text-[#d4af37] transition-colors whitespace-nowrap">
               O Salão
